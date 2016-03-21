@@ -1743,7 +1743,7 @@ CK_RV SoftHSM::C_FindObjectsInit(CK_SESSION_HANDLE hSession, CK_ATTRIBUTE_PTR pT
 					if (attr.isByteStringAttribute())
 					{
 						ByteString bsAttrValue;
-						if (isPrivateObject && attr.getByteStringValue().size() != 0)
+						if ((isPrivateObject && pTemplate[i].type != CKA_ID && pTemplate[i].type != CKA_LABEL && pTemplate[i].type != CKA_ISSUER && pTemplate[i].type != CKA_SERIAL_NUMBER && pTemplate[i].type != CKA_SUBJECT) && attr.getByteStringValue().size() != 0)
 						{
 							if (!token->decrypt(attr.getByteStringValue(), bsAttrValue))
 							{

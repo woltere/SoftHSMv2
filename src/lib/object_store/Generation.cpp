@@ -81,6 +81,8 @@ bool Generation::sync(File &objectFile)
 	}
 
 	currentValue = onDisk;
+        lastReadCurrentValue = std::chrono::system_clock::now();
+
 
 	return objectFile.seek(0L);
 }
@@ -88,17 +90,23 @@ bool Generation::sync(File &objectFile)
 // Check if the target was updated
 bool Generation::wasUpdated()
 {
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	auto age = now - lastReadCurrentValue;
+	if (age < std::chrono::duration<int>(15)) {
+		return false;
+	}
+	lastReadCurrentValue = now;
 	if (isToken)
 	{
 		MutexLocker lock(genMutex);
 
 		File genFile(path);
-
+/*
 		if (!genFile.isValid())
 		{
 			return true;
 		}
-
+*/
 		unsigned long onDisk;
 
 		if (!genFile.readULong(onDisk))
@@ -111,12 +119,12 @@ bool Generation::wasUpdated()
 	else
 	{
 		File objectFile(path);
-
+/*
 		if (!objectFile.isValid())
 		{
 			return true;
 		}
-
+*/
 		unsigned long onDisk;
 
 		if (!objectFile.readULong(onDisk))
@@ -165,6 +173,8 @@ void Generation::commit()
 
 			genFile.unlock();
 
+			lastReadCurrentValue = std::chrono::system_clock::now();
+
 			return;
 		}
 
@@ -190,7 +200,7 @@ void Generation::commit()
 		if (bOK)
 		{
 			currentValue = onDisk;
-
+			lastReadCurrentValue = std::chrono::system_clock::now();
 			pendingUpdate = false;
 		}
 
@@ -202,6 +212,7 @@ void Generation::commit()
 void Generation::set(unsigned long onDisk)
 {
 	currentValue = onDisk;
+        lastReadCurrentValue = std::chrono::system_clock::now();
 }
 
 // Return new value

@@ -37,7 +37,7 @@
 #include <string>
 #include "File.h"
 #include "MutexFactory.h"
-
+#include <chrono>
 class Generation
 {
 public:
@@ -83,6 +83,8 @@ private:
 
 	// Current value
 	unsigned long currentValue;
+
+	std::chrono::system_clock::time_point lastReadCurrentValue;
 
 	// For thread safeness
 	Mutex* genMutex;

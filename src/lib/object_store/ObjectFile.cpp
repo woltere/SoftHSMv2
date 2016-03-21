@@ -271,14 +271,14 @@ void ObjectFile::refresh(bool isFirstTime /* = false */)
 	}
 
 	File objectFile(path);
-
+/*
 	if (!objectFile.isValid())
 	{
 		valid = false;
 
 		return;
 	}
-
+*/
 	DEBUG_MSG("Object %s has changed", path.c_str());
 
 	// Discard the existing set of attributes
@@ -580,7 +580,7 @@ void ObjectFile::store(bool isCommit /* = false */)
 	}
 
 	File objectFile(path, true, true, true, false);
-
+/*
 	if (!objectFile.isValid())
 	{
 		DEBUG_MSG("Cannot open object %s for writing", path.c_str());
@@ -589,7 +589,7 @@ void ObjectFile::store(bool isCommit /* = false */)
 
 		return;
 	}
-
+*/
 	objectFile.lock();
 
 	if (!isCommit) {

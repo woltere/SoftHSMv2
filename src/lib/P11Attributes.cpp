@@ -274,7 +274,7 @@ CK_RV P11Attribute::retrieve(Token *token, bool isPrivate, CK_VOID_PTR pValue, C
 		// Lower level attribute has to be variable sized.
 		if (attr.isByteStringAttribute())
 		{
-			if (isPrivate && attr.getByteStringValue().size() != 0)
+			if ((isPrivate && type != CKA_ID && type != CKA_LABEL && type != CKA_ISSUER && type != CKA_SERIAL_NUMBER && type != CKA_SUBJECT) && attr.getByteStringValue().size() != 0)
 			{
 				ByteString value;
 				if (!token->decrypt(attr.getByteStringValue(),value))
@@ -329,7 +329,7 @@ CK_RV P11Attribute::retrieve(Token *token, bool isPrivate, CK_VOID_PTR pValue, C
 		}
 		else if (attr.isByteStringAttribute())
 		{
-			if (isPrivate && attr.getByteStringValue().size() != 0)
+			if ((isPrivate && type != CKA_ID && type != CKA_LABEL && type != CKA_ISSUER && type != CKA_SERIAL_NUMBER && type != CKA_SUBJECT) && attr.getByteStringValue().size() != 0)
 			{
 				ByteString value;
 				if (!token->decrypt(attr.getByteStringValue(),value))
@@ -687,6 +687,10 @@ bool P11AttrLabel::setDefault()
 	return osobject->setAttribute(type, attr);
 }
 
+CK_RV P11AttrLabel::updateAttr(Token *token, bool /* isPrivate */, CK_VOID_PTR pValue, CK_ULONG ulValueLen, int op) {
+        return P11Attribute::updateAttr(token, false, pValue, ulValueLen, op);
+}
+
 /*****************************************
  * CKA_COPYABLE
  *****************************************/
@@ -858,6 +862,10 @@ bool P11AttrID::setDefault()
 	return osobject->setAttribute(type, attr);
 }
 
+CK_RV P11AttrID::updateAttr(Token *token, bool /* isPrivate */, CK_VOID_PTR pValue, CK_ULONG ulValueLen, int op) {
+	return P11Attribute::updateAttr(token, false, pValue, ulValueLen, op);
+}
+
 /*****************************************
  * CKA_VALUE
  *****************************************/
@@ -1009,6 +1017,10 @@ bool P11AttrSubject::setDefault()
 	return osobject->setAttribute(type, attr);
 }
 
+CK_RV P11AttrSubject::updateAttr(Token *token, bool /* isPrivate */, CK_VOID_PTR pValue, CK_ULONG ulValueLen, int op) {
+	return P11Attribute::updateAttr(token, false, pValue, ulValueLen, op);
+}
+
 /*****************************************
  * CKA_ISSUER
  *****************************************/
@@ -1018,6 +1030,10 @@ bool P11AttrIssuer::setDefault()
 {
 	OSAttribute attr(ByteString(""));
 	return osobject->setAttribute(type, attr);
+}
+
+CK_RV P11AttrIssuer::updateAttr(Token *token, bool /* isPrivate */, CK_VOID_PTR pValue, CK_ULONG ulValueLen, int op) {
+	return P11Attribute::updateAttr(token, false, pValue, ulValueLen, op);
 }
 
 /*****************************************
@@ -1153,6 +1169,11 @@ bool P11AttrSerialNumber::setDefault()
 {
 	OSAttribute attr(ByteString(""));
 	return osobject->setAttribute(type, attr);
+}
+
+
+CK_RV P11AttrSerialNumber::updateAttr(Token *token, bool /* isPrivate */, CK_VOID_PTR pValue, CK_ULONG ulValueLen, int op) {
+	return P11Attribute::updateAttr(token, false, pValue, ulValueLen, op);
 }
 
 /*****************************************
