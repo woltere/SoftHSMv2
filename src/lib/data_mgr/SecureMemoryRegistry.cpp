@@ -111,7 +111,7 @@ void SecureMemoryRegistry::wipe()
 	// gone pear shaped once before and we're exiting on a fatal exception
 	try
 	{
-		for (std::map<void*, size_t>::iterator i = registry.begin(); i != registry.end(); i++)
+		for (std::unordered_map<void*, size_t>::iterator i = registry.begin(); i != registry.end(); i++)
 		{
 			try
 			{

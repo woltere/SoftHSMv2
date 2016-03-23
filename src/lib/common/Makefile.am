@@ -3,7 +3,8 @@ MAINTAINERCLEANFILES = 		$(srcdir)/Makefile.in
 AM_CPPFLAGS =                   -I$(srcdir)/../cryptoki_compat \
 				-I$(srcdir)/../crypto \
 				-I$(srcdir)/../data_mgr \
-				-I$(srcdir)/..
+				-I$(srcdir)/.. \
+				-std=c++11 
 
 noinst_LTLIBRARIES =		libsofthsm_common.la
 libsofthsm_common_la_SOURCES =	Configuration.cpp \

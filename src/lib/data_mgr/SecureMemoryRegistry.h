@@ -37,6 +37,7 @@
 
 #include <stdlib.h>
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include "MutexFactory.h"
 
@@ -64,7 +65,7 @@ private:
 	static std::auto_ptr<SecureMemoryRegistry> instance;
 #endif
 
-	std::map<void*, size_t> registry;
+	std::unordered_map<void*, size_t> registry;
 
 	Mutex* SecMemRegistryMutex;
 };

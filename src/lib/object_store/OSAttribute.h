@@ -36,6 +36,7 @@
 #include "config.h"
 #include "ByteString.h"
 #include <map>
+#include <unordered_map>
 
 class OSAttribute
 {

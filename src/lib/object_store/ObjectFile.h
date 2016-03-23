@@ -41,6 +41,7 @@
 #include "MutexFactory.h"
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <time.h>
 #include "cryptoki.h"
 #include "OSObject.h"
@@ -62,6 +63,7 @@ public:
 
 	// Retrieve the specified attribute
 	virtual OSAttribute getAttribute(CK_ATTRIBUTE_TYPE type);
+	virtual bool getAttributeIfExists(CK_ATTRIBUTE_TYPE type, OSAttribute& attr);
 	virtual bool getBooleanValue(CK_ATTRIBUTE_TYPE type, bool val);
 	virtual unsigned long getUnsignedLongValue(CK_ATTRIBUTE_TYPE type, unsigned long val);
 	virtual ByteString getByteStringValue(CK_ATTRIBUTE_TYPE type);
@@ -130,7 +132,7 @@ private:
 	Generation* gen;
 
 	// The object's raw attributes
-	std::map<CK_ATTRIBUTE_TYPE, OSAttribute*> attributes;
+	std::unordered_map<CK_ATTRIBUTE_TYPE, OSAttribute*> attributes;
 
 	// The object's validity state
 	bool valid;
@@ -145,6 +147,10 @@ private:
 	bool inTransaction;
 	File* transactionLockFile;
 	std::string lockpath;
+
+	int isPrivate;
+	int ckaTrusted;
+	int ckaToken;
 };
 
 #endif // !_SOFTHSM_V2_OBJECTFILE_H

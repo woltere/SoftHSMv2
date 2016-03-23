@@ -8,6 +8,7 @@ AM_CPPFLAGS = 			-I$(srcdir)/cryptoki_compat \
 				-I$(srcdir)/data_mgr \
 				-I$(srcdir)/handle_mgr \
 				-I$(srcdir)/crypto \
+				-std=c++11 \
 				@CRYPTO_INCLUDES@
 
 lib_LTLIBRARIES =		libsofthsm2.la

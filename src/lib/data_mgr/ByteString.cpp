@@ -318,6 +318,16 @@ bool ByteString::operator==(const ByteString& compareTo) const
 	return (memcmp(&byteString[0], &compareTo.byteString[0], this->size()) == 0);
 }
 
+bool ByteString::equals(const unsigned char* bytes, const size_t bytesLen) const
+{
+	if (this->size() != bytesLen) {
+		return false;
+	} else if (this->size() == 0) {
+		return true;
+	}
+	return (memcmp(&byteString[0], bytes, bytesLen) == 0);
+}
+
 bool ByteString::operator!=(const ByteString& compareTo) const
 {
 	if (compareTo.size() != this->size())

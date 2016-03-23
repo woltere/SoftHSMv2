@@ -6,7 +6,8 @@ AM_CPPFLAGS =			-I$(srcdir)/../cryptoki_compat \
 				-I$(srcdir)/../data_mgr \
 				-I$(srcdir)/../session_mgr \
 				-I$(srcdir)/../object_store \
-				-I$(srcdir)/..
+				-I$(srcdir)/.. \
+				-std=c++11
 
 noinst_LTLIBRARIES =		libsofthsm_slotmgr.la
 libsofthsm_slotmgr_la_SOURCES =	SlotManager.cpp \

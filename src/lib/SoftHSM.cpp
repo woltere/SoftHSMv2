@@ -1715,10 +1715,14 @@ CK_RV SoftHSM::C_FindObjectsInit(CK_SESSION_HANDLE hSession, CK_ATTRIBUTE_PTR pT
 		{
 			bAttrMatch = false;
 
-			if (!(*it)->attributeExists(pTemplate[i].type))
-				break;
+			// if (!(*it)->attributeExists(pTemplate[i].type))
+			//	break;
 
-			OSAttribute attr = (*it)->getAttribute(pTemplate[i].type);
+			// OSAttribute attr = (*it)->getAttribute(pTemplate[i].type);
+			OSAttribute attr(false);
+			bool exists = (*it)->getAttributeIfExists(pTemplate[i].type, attr);
+			if (!exists)
+				break;
 
 			if (attr.isBooleanAttribute())
 			{
@@ -1758,8 +1762,10 @@ CK_RV SoftHSM::C_FindObjectsInit(CK_SESSION_HANDLE hSession, CK_ATTRIBUTE_PTR pT
 							break;
 						if (pTemplate[i].ulValueLen != 0)
 						{
-							ByteString bsTemplateValue((const unsigned char*)pTemplate[i].pValue, pTemplate[i].ulValueLen);
-							if (bsAttrValue != bsTemplateValue)
+						//	ByteString bsTemplateValue((const unsigned char*)pTemplate[i].pValue, pTemplate[i].ulValueLen);
+					        //		if (bsAttrValue != bsTemplateValue)
+					        //			break;
+							if (!bsAttrValue.equals((const unsigned char*)pTemplate[i].pValue, pTemplate[i].ulValueLen))
 								break;
 						}
 					}

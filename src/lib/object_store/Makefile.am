@@ -5,6 +5,7 @@ AM_CPPFLAGS =				-I$(srcdir)/../cryptoki_compat \
 					-I$(srcdir)/../data_mgr \
 					-I$(srcdir)/../common \
 					-I$(srcdir)/.. \
+					-std=c++11 \
 					@SQLITE3_INCLUDES@
 
 noinst_LTLIBRARIES =			libsofthsm_objectstore.la

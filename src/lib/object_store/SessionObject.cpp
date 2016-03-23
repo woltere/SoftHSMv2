@@ -76,6 +76,21 @@ OSAttribute SessionObject::getAttribute(CK_ATTRIBUTE_TYPE type)
 	return *attr;
 }
 
+bool SessionObject::getAttributeIfExists(CK_ATTRIBUTE_TYPE type, OSAttribute& attr)
+{
+        MutexLocker lock(objectMutex);
+
+        OSAttribute* pattr = attributes[type];
+        if (pattr == NULL)
+        {
+		return false;
+        }
+
+        attr = *pattr;
+	return true;
+}
+
+
 bool SessionObject::getBooleanValue(CK_ATTRIBUTE_TYPE type, bool val)
 {
 	MutexLocker lock(objectMutex);

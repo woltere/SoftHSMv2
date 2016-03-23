@@ -6,7 +6,8 @@ AM_CPPFLAGS =				-I$(srcdir)/../cryptoki_compat \
 					-I$(srcdir)/../object_store \
 					-I$(srcdir)/../crypto \
 					-I$(srcdir)/../common \
-					-I$(srcdir)/..
+					-I$(srcdir)/.. \
+					-std=c++11
 
 noinst_LTLIBRARIES =			libsofthsm_sessionmgr.la
 libsofthsm_sessionmgr_la_SOURCES =	SessionManager.cpp \

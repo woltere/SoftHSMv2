@@ -106,6 +106,7 @@ public:
 	// Comparison
 	bool operator==(const ByteString& compareTo) const;
 	bool operator!=(const ByteString& compareTo) const;
+	bool equals(const unsigned char* bytes, const size_t bytesLen) const;
 
 	// XORing
 	ByteString& operator^=(const ByteString& rhs);

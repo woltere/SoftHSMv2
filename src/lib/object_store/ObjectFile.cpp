@@ -39,6 +39,7 @@
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <algorithm>
 
 // Attribute types
 #define BOOLEAN_ATTR			0x1
@@ -57,6 +58,9 @@ ObjectFile::ObjectFile(OSToken* parent, std::string inPath, std::string inLockpa
 	inTransaction = false;
 	transactionLockFile = NULL;
 	lockpath = inLockpath;
+	isPrivate = 0;
+	ckaTrusted = 0;
+	ckaToken = 0;
 
 	if (!valid) return;
 
@@ -92,9 +96,17 @@ ObjectFile::~ObjectFile()
 // Check if the specified attribute exists
 bool ObjectFile::attributeExists(CK_ATTRIBUTE_TYPE type)
 {
-	MutexLocker lock(objectMutex);
+	if (!valid) {
+		return false;
+	}
 
-	return valid && (attributes[type] != NULL);
+	if ( (type == CKA_TRUSTED && ckaTrusted != 0) || (type == CKA_PRIVATE && isPrivate != 0) || (type == CKA_TOKEN && ckaToken != 0)) {
+		return true;
+	}
+
+	MutexLocker lock(objectMutex);
+	
+	return valid && attributes[type] != NULL;
 }
 
 // Retrieve the specified attribute
@@ -112,8 +124,61 @@ OSAttribute ObjectFile::getAttribute(CK_ATTRIBUTE_TYPE type)
 	return *attr;
 }
 
+bool ObjectFile::getAttributeIfExists(CK_ATTRIBUTE_TYPE type, OSAttribute& attr) {
+	switch (type) {
+	case CKA_PRIVATE:
+		if (isPrivate == 0) {
+			return false;
+		}
+		attr = OSAttribute(isPrivate == 1);
+		return true;
+	case CKA_TOKEN:
+		if (ckaToken == 0) {
+			return false;
+		}
+		attr = OSAttribute(ckaToken == 1);
+		return true;
+	case CKA_TRUSTED:
+		if (ckaTrusted == 0) {
+			return false;
+		}
+		attr = OSAttribute(ckaTrusted == 1);
+		return true;
+	default:
+		{
+			MutexLocker lock(objectMutex);
+			OSAttribute* pattr = attributes[type];
+			if (pattr == NULL) {
+				return false;
+			}
+			attr = *pattr;
+			return true;
+		}
+	}
+}
+
 bool ObjectFile::getBooleanValue(CK_ATTRIBUTE_TYPE type, bool val)
 {
+	if (type == CKA_PRIVATE) {
+		switch (isPrivate) {
+		case 1: return true;
+		case 2: return false;
+		default: return val;
+		}
+	} else if (type == CKA_TRUSTED) {
+		switch (ckaTrusted) {
+		case 1: return true;
+		case 2: return false;
+		default: return val;
+		}
+	} else if (type == CKA_TOKEN) {
+		switch (ckaToken) {
+		case 1: return true;
+		case 2: return false;
+		default: return val;
+		}
+	}
+
 	MutexLocker lock(objectMutex);
 
 	OSAttribute* attr = attributes[type];
@@ -180,25 +245,29 @@ ByteString ObjectFile::getByteStringValue(CK_ATTRIBUTE_TYPE type)
 	}
 }
 
+int op_key (std::pair<CK_ATTRIBUTE_TYPE, OSAttribute*> p) { return p.first; }
+
 // Retrieve the next attribute type
 CK_ATTRIBUTE_TYPE ObjectFile::nextAttributeType(CK_ATTRIBUTE_TYPE type)
 {
 	MutexLocker lock(objectMutex);
 
-	std::map<CK_ATTRIBUTE_TYPE, OSAttribute*>::iterator n = attributes.upper_bound(type);
+        std::set<CK_ATTRIBUTE_TYPE> keys;
+        transform(attributes.begin(), attributes.end(), std::inserter(keys, keys.begin()), op_key);
+	std::set<CK_ATTRIBUTE_TYPE>::iterator n = keys.upper_bound(type);
 
 	// skip null attributes
-	while ((n != attributes.end()) && (n->second == NULL))
+	while ((n != keys.end()) && (attributes[*n] == NULL))
 		++n;
 
 	// return type or CKA_CLASS (= 0)
-	if (n == attributes.end())
+	if (n == keys.end())
 	{
 		return CKA_CLASS;
 	}
 	else
 	{
-		return n->first;
+		return *n;
 	}
 }
 
@@ -223,6 +292,14 @@ bool ObjectFile::setAttribute(CK_ATTRIBUTE_TYPE type, const OSAttribute& attribu
 		}
 
 		attributes[type] = new OSAttribute(attribute);
+
+		if (type == CKA_PRIVATE) {
+			isPrivate = attribute.getBooleanValue() ? 1 : 2;
+		} else if (type == CKA_TRUSTED) {
+			ckaTrusted = attribute.getBooleanValue() ? 1 : 2;
+		} else if (type == CKA_TOKEN) {
+                        ckaToken = attribute.getBooleanValue() ? 1 : 2;
+                }
 	}
 
 	store();
@@ -360,6 +437,14 @@ void ObjectFile::refresh(bool isFirstTime /* = false */)
 			}
 
 			attributes[p11AttrType] = new OSAttribute(value);
+
+			if (p11AttrType == CKA_PRIVATE) {
+				isPrivate = value ? 1 : 2;
+			} else if (p11AttrType == CKA_TRUSTED) {
+				ckaTrusted = value ? 1 : 2;
+			} else if (p11AttrType == CKA_TOKEN) {
+                                ckaToken = value ? 1 : 2;
+                        } 
 		}
 		else if (osAttrType == ULONG_ATTR)
 		{
@@ -474,7 +559,7 @@ bool ObjectFile::writeAttributes(File &objectFile)
 	}
 
 
-	for (std::map<CK_ATTRIBUTE_TYPE, OSAttribute*>::iterator i = attributes.begin(); i != attributes.end(); i++)
+	for (std::unordered_map<CK_ATTRIBUTE_TYPE, OSAttribute*>::iterator i = attributes.begin(); i != attributes.end(); i++)
 	{
 		if (i->second == NULL)
 		{
@@ -621,10 +706,10 @@ void ObjectFile::discardAttributes()
 {
 	MutexLocker lock(objectMutex);
 
-	std::map<CK_ATTRIBUTE_TYPE, OSAttribute*> cleanUp = attributes;
+	std::unordered_map<CK_ATTRIBUTE_TYPE, OSAttribute*> cleanUp = attributes;
 	attributes.clear();
 
-	for (std::map<CK_ATTRIBUTE_TYPE, OSAttribute*>::iterator i = cleanUp.begin(); i != cleanUp.end(); i++)
+	for (std::unordered_map<CK_ATTRIBUTE_TYPE, OSAttribute*>::iterator i = cleanUp.begin(); i != cleanUp.end(); i++)
 	{
 		if (i->second == NULL)
 		{
